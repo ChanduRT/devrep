@@ -40,8 +40,9 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
       padding: 20px;
+      padding-top: 80px;
     }
 
     .back-button {
@@ -57,7 +58,7 @@
       font-weight: 600;
       backdrop-filter: blur(20px);
       transition: all 0.3s ease;
-      z-index: 100;
+      z-index: 1000;
     }
 
     .back-button:hover {
@@ -122,28 +123,35 @@
       box-shadow: 0 0 40px rgba(240, 147, 251, 0.3);
     }
 
-    .microphone-button:hover {
+    .microphone-button:hover:not(:disabled) {
       transform: scale(1.05);
       box-shadow: 0 0 60px rgba(240, 147, 251, 0.5);
     }
 
     .microphone-button.listening {
       animation: pulse 1.5s infinite;
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
     }
 
     .microphone-button.processing {
-      background: var(--warning-color);
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
       animation: spin 2s linear infinite;
+    }
+
+    .microphone-button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none !important;
     }
 
     @keyframes pulse {
       0%, 100% { 
         transform: scale(1);
-        box-shadow: 0 0 40px rgba(240, 147, 251, 0.3);
+        box-shadow: 0 0 40px rgba(239, 68, 68, 0.4);
       }
       50% { 
         transform: scale(1.1);
-        box-shadow: 0 0 80px rgba(240, 147, 251, 0.6);
+        box-shadow: 0 0 80px rgba(239, 68, 68, 0.7);
       }
     }
 
@@ -157,10 +165,11 @@
       margin-bottom: 20px;
       color: var(--text-secondary);
       min-height: 1.5rem;
+      transition: all 0.3s ease;
     }
 
     .status-text.listening {
-      color: var(--secondary-gradient);
+      color: #ef4444;
       animation: glow 2s ease-in-out infinite alternate;
     }
 
@@ -177,8 +186,8 @@
     }
 
     @keyframes glow {
-      from { text-shadow: 0 0 10px rgba(240, 147, 251, 0.5); }
-      to { text-shadow: 0 0 20px rgba(240, 147, 251, 0.8); }
+      from { text-shadow: 0 0 10px rgba(239, 68, 68, 0.5); }
+      to { text-shadow: 0 0 20px rgba(239, 68, 68, 0.8); }
     }
 
     .voice-controls {
@@ -186,6 +195,7 @@
       gap: 15px;
       justify-content: center;
       margin-bottom: 30px;
+      flex-wrap: wrap;
     }
 
     .btn {
@@ -200,6 +210,12 @@
       letter-spacing: 0.5px;
     }
 
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
     .btn-secondary {
       background: var(--card-bg);
       color: var(--text-primary);
@@ -207,7 +223,7 @@
       backdrop-filter: blur(20px);
     }
 
-    .btn-secondary:hover {
+    .btn-secondary:hover:not(:disabled) {
       background: var(--glass-bg);
       transform: translateY(-2px);
     }
@@ -218,7 +234,7 @@
       box-shadow: var(--shadow-glow);
     }
 
-    .btn-primary:hover {
+    .btn-primary:hover:not(:disabled) {
       transform: translateY(-2px);
       box-shadow: 0 10px 40px rgba(102, 126, 234, 0.4);
     }
@@ -256,6 +272,7 @@
       color: var(--text-secondary);
       margin-bottom: 15px;
       border-left: 4px solid #667eea;
+      word-wrap: break-word;
     }
 
     .generated-code {
@@ -269,6 +286,7 @@
       white-space: pre-wrap;
       overflow-x: auto;
       border: 1px solid rgba(255, 255, 255, 0.1);
+      word-wrap: break-word;
     }
 
     .copy-button {
@@ -284,6 +302,7 @@
       cursor: pointer;
       opacity: 0.8;
       transition: opacity 0.3s ease;
+      z-index: 10;
     }
 
     .copy-button:hover {
@@ -315,6 +334,12 @@
     .suggestions li {
       padding: 5px 0;
       color: var(--text-secondary);
+      cursor: pointer;
+      transition: color 0.3s ease;
+    }
+
+    .suggestions li:hover {
+      color: var(--text-primary);
     }
 
     .suggestions li::before {
@@ -326,7 +351,58 @@
       display: none;
     }
 
+    .browser-support {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid var(--error-color);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .browser-support h3 {
+      color: var(--error-color);
+      margin-bottom: 10px;
+    }
+
+    .keyboard-shortcuts {
+      background: rgba(102, 126, 234, 0.1);
+      border: 1px solid #667eea;
+      border-radius: 12px;
+      padding: 15px;
+      margin-top: 20px;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    .keyboard-shortcuts strong {
+      color: var(--text-primary);
+    }
+
+    .language-selector {
+      margin-bottom: 20px;
+    }
+
+    .language-selector select {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-primary);
+      padding: 8px 12px;
+      font-size: 14px;
+      backdrop-filter: blur(20px);
+    }
+
+    .language-selector select option {
+      background: var(--dark-bg);
+      color: var(--text-primary);
+    }
+
     @media (max-width: 768px) {
+      body {
+        padding-top: 60px;
+      }
+      
       .header h1 {
         font-size: 2rem;
       }
@@ -345,12 +421,17 @@
         flex-direction: column;
         align-items: center;
       }
+      
+      .btn {
+        width: 100%;
+        max-width: 200px;
+      }
     }
   </style>
 </head>
 
 <body>
-  <a href="/index" class="back-button">← Back to Editor</a>
+  <a href="/" class="back-button">← Back to Editor</a>
 
   <div class="container">
     <div class="header">
@@ -358,8 +439,31 @@
       <p>Speak your ideas, get instant code generation</p>
     </div>
 
+    <div id="browser-support-warning" class="browser-support hidden">
+      <h3>⚠️ Browser Not Supported</h3>
+      <p>Speech recognition is not supported in your browser. Please use Chrome, Edge, or Safari for the best experience.</p>
+    </div>
+
     <div class="voice-interface">
-      <button id="microphone-button" class="microphone-button">
+      <div class="language-selector">
+        <label for="language-select">Programming Language:</label>
+        <select id="language-select">
+          <option value="javascript">JavaScript</option>
+          <option value="python">Python</option>
+          <option value="java">Java</option>
+          <option value="cpp">C++</option>
+          <option value="c">C</option>
+          <option value="html">HTML</option>
+          <option value="css">CSS</option>
+          <option value="php">PHP</option>
+          <option value="ruby">Ruby</option>
+          <option value="go">Go</option>
+          <option value="rust">Rust</option>
+          <option value="typescript">TypeScript</option>
+        </select>
+      </div>
+
+      <button id="microphone-button" class="microphone-button" title="Click to start recording (Spacebar)">
         🎤
       </button>
       
@@ -370,6 +474,10 @@
       <div class="voice-controls">
         <button id="clear-button" class="btn btn-secondary">Clear Results</button>
         <button id="copy-all-button" class="btn btn-primary hidden">Copy All Code</button>
+      </div>
+
+      <div class="keyboard-shortcuts">
+        <strong>Keyboard Shortcuts:</strong> Spacebar to start recording, Escape to cancel
       </div>
     </div>
 
@@ -389,183 +497,657 @@
         </div>
         <div class="code-container">
           <pre id="generated-code" class="generated-code">Generated code will appear here...</pre>
-          <button id="copy-code-button" class="copy-button">Copy</button>
+          <button id="copy-code-button" class="copy-button" title="Copy code to clipboard">Copy</button>
         </div>
       </div>
 
       <div class="suggestions">
         <h4>💡 Voice Command Examples:</h4>
         <ul>
-          <li>"Create a function to calculate factorial"</li>
-          <li>"Write a Python class for a simple calculator"</li>
-          <li>"Generate a REST API endpoint in JavaScript"</li>
-          <li>"Create a bubble sort algorithm in C++"</li>
-          <li>"Build a responsive HTML form with validation"</li>
+          <li onclick="simulateVoiceInput('Create a function to calculate factorial')">Create a function to calculate factorial</li>
+          <li onclick="simulateVoiceInput('Write a Python class for a simple calculator')">Write a Python class for a simple calculator</li>
+          <li onclick="simulateVoiceInput('Generate a REST API endpoint in JavaScript')">Generate a REST API endpoint in JavaScript</li>
+          <li onclick="simulateVoiceInput('Create a bubble sort algorithm in C++')">Create a bubble sort algorithm in C++</li>
+          <li onclick="simulateVoiceInput('Build a responsive HTML form with validation')">Build a responsive HTML form with validation</li>
         </ul>
       </div>
     </div>
   </div>
 
   <script>
+    // Global variables
+    let recognition = null;
     let isListening = false;
     let isProcessing = false;
+    let recognitionTimer = null;
+    let silenceTimer = null;
 
+    // DOM elements
     const micButton = document.getElementById('microphone-button');
     const statusText = document.getElementById('status-text');
     const resultsSection = document.getElementById('results-section');
     const voiceInputDisplay = document.getElementById('voice-input-display');
     const generatedCode = document.getElementById('generated-code');
     const copyAllButton = document.getElementById('copy-all-button');
+    const browserWarning = document.getElementById('browser-support-warning');
+    const clearButton = document.getElementById('clear-button');
+    const languageSelect = document.getElementById('language-select');
 
-    // Voice recording functionality
-    micButton.addEventListener('click', async () => {
-      if (isListening || isProcessing) return;
+    // Initialize the application
+    document.addEventListener('DOMContentLoaded', function() {
+      initializeSpeechRecognition();
+      setupEventListeners();
+      setupKeyboardShortcuts();
+    });
+
+    function initializeSpeechRecognition() {
+      // Check for Speech Recognition support
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      
+      if (!SpeechRecognition) {
+        showBrowserWarning();
+        return;
+      }
 
       try {
-        setListeningState(true);
-        statusText.textContent = '🎤 Listening... Speak your code idea now';
-        statusText.className = 'status-text listening';
+        recognition = new SpeechRecognition();
+        
+        // Configure recognition settings
+        recognition.continuous = false;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
+        recognition.maxAlternatives = 1;
 
-        const response = await fetch('/voice-to-code', {
+        // Set up event listeners
+        recognition.onstart = handleRecognitionStart;
+        recognition.onresult = handleRecognitionResult;
+        recognition.onerror = handleRecognitionError;
+        recognition.onend = handleRecognitionEnd;
+        recognition.onspeechstart = handleSpeechStart;
+        recognition.onspeechend = handleSpeechEnd;
+        recognition.onnomatch = handleNoMatch;
+
+        console.log('Speech recognition initialized successfully');
+      } catch (error) {
+        console.error('Failed to initialize speech recognition:', error);
+        showBrowserWarning();
+      }
+    }
+
+    function showBrowserWarning() {
+      browserWarning.classList.remove('hidden');
+      micButton.disabled = true;
+      statusText.textContent = 'Speech recognition not supported in this browser';
+      statusText.className = 'status-text error';
+    }
+
+    function setupEventListeners() {
+      // Microphone button
+      micButton.addEventListener('click', handleMicrophoneClick);
+
+      // Copy buttons
+      document.getElementById('copy-code-button').addEventListener('click', () => {
+        copyToClipboard(generatedCode.textContent, 'Code copied to clipboard!');
+      });
+
+      copyAllButton.addEventListener('click', () => {
+        const allContent = `Voice Input: ${voiceInputDisplay.textContent}\n\nGenerated Code:\n${generatedCode.textContent}`;
+        copyToClipboard(allContent, 'All content copied to clipboard!');
+      });
+
+      // Clear button
+      clearButton.addEventListener('click', clearResults);
+    }
+
+    function setupKeyboardShortcuts() {
+      document.addEventListener('keydown', (e) => {
+        // Prevent shortcuts when user is typing in input fields
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
+          return;
+        }
+
+        if (e.code === 'Space' && !isListening && !isProcessing && recognition) {
+          e.preventDefault();
+          startListening();
+        }
+        
+        if (e.key === 'Escape' && (isListening || isProcessing)) {
+          e.preventDefault();
+          stopListening();
+          resetState();
+          statusText.textContent = 'Voice input cancelled';
+          statusText.className = 'status-text';
+        }
+      });
+    }
+
+    // Core voice recognition functions
+    function handleMicrophoneClick() {
+      if (!recognition) {
+        showError('Voice recognition not available');
+        return;
+      }
+      
+      if (isListening) {
+        stopListening();
+      } else if (!isProcessing) {
+        startListening();
+      }
+    }
+
+    function startListening() {
+      if (!recognition || isListening || isProcessing) return;
+
+      try {
+        isListening = true;
+        updateUIForListening();
+        
+        // Set a timeout to stop listening after 15 seconds
+        recognitionTimer = setTimeout(() => {
+          if (isListening) {
+            stopListening();
+            showError('Listening timeout - please try again');
+          }
+        }, 15000);
+
+        recognition.start();
+        console.log('Started listening...');
+      } catch (error) {
+        console.error('Failed to start recognition:', error);
+        showError('Could not start listening - please try again');
+        resetState();
+      }
+    }
+
+    function stopListening() {
+      if (!recognition || !isListening) return;
+
+      try {
+        recognition.stop();
+        clearTimeout(recognitionTimer);
+        clearTimeout(silenceTimer);
+        console.log('Stopped listening...');
+      } catch (error) {
+        console.error('Failed to stop recognition:', error);
+      }
+    }
+
+    function updateUIForListening() {
+      micButton.classList.add('listening');
+      micButton.innerHTML = '🔴';
+      micButton.title = 'Click to stop recording (Escape)';
+      statusText.textContent = '🎤 Listening... Speak your code idea now';
+      statusText.className = 'status-text listening';
+    }
+
+    // Recognition event handlers
+    function handleRecognitionStart() {
+      console.log('Speech recognition started');
+    }
+
+    function handleSpeechStart() {
+      console.log('Speech detected');
+      clearTimeout(silenceTimer);
+    }
+
+    function handleSpeechEnd() {
+      console.log('Speech ended, waiting for final result...');
+      // Give a short time for final results
+      silenceTimer = setTimeout(() => {
+        if (isListening) {
+          stopListening();
+        }
+      }, 1000);
+    }
+
+    function handleRecognitionResult(event) {
+      let finalTranscript = '';
+      let interimTranscript = '';
+
+      try {
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          const confidence = event.results[i][0].confidence;
+          
+          console.log(`Result ${i}: "${transcript}" (confidence: ${confidence})`);
+          
+          if (event.results[i].isFinal) {
+            finalTranscript += transcript;
+          } else {
+            interimTranscript += transcript;
+          }
+        }
+
+        // Show interim results
+        if (interimTranscript.trim()) {
+          statusText.textContent = `🎤 "${interimTranscript.trim()}"`;
+        }
+
+        // Process final transcript
+        if (finalTranscript.trim()) {
+          console.log('Final transcript:', finalTranscript.trim());
+          processVoiceInput(finalTranscript.trim());
+        }
+      } catch (error) {
+        console.error('Error processing recognition result:', error);
+        showError('Error processing voice input');
+        resetState();
+      }
+    }
+
+    function handleRecognitionError(event) {
+      console.error('Speech recognition error:', event.error, event);
+      clearTimeout(recognitionTimer);
+      clearTimeout(silenceTimer);
+      
+      let errorMessage = 'Could not listen to your voice';
+      
+      switch (event.error) {
+        case 'no-speech':
+          errorMessage = 'No speech detected - please speak clearly and try again';
+          break;
+        case 'audio-capture':
+          errorMessage = 'Microphone not available - please check your microphone settings';
+          break;
+        case 'not-allowed':
+          errorMessage = 'Microphone permission denied - please allow microphone access';
+          break;
+        case 'network':
+          errorMessage = 'Network error - please check your internet connection';
+          break;
+        case 'service-not-allowed':
+          errorMessage = 'Speech service not allowed - please try again';
+          break;
+        case 'aborted':
+          errorMessage = 'Speech recognition was cancelled';
+          break;
+        default:
+          errorMessage = 'Could not listen to your voice - please try again';
+      }
+      
+      showError(errorMessage);
+      resetState();
+    }
+
+    function handleRecognitionEnd() {
+      console.log('Speech recognition ended');
+      clearTimeout(recognitionTimer);
+      clearTimeout(silenceTimer);
+      
+      if (isListening) {
+        isListening = false;
+        micButton.classList.remove('listening');
+        micButton.innerHTML = '🎤';
+        micButton.title = 'Click to start recording (Spacebar)';
+        
+        // If no results were processed, show appropriate message
+        if (statusText.textContent.includes('Listening')) {
+          statusText.textContent = 'No speech detected - please try again';
+          statusText.className = 'status-text error';
+        }
+      }
+    }
+
+    function handleNoMatch() {
+      console.log('No speech match found');
+      showError('Could not understand speech - please speak clearly and try again');
+      resetState();
+    }
+
+    // Voice input processing - This sends to your backend
+    async function processVoiceInput(voiceInput) {
+      if (!voiceInput || voiceInput.length < 3) {
+        showError('Speech too short - please describe what code you want');
+        resetState();
+        return;
+      }
+
+      console.log('Processing voice input:', voiceInput);
+      resetState();
+      setProcessingState(true);
+
+      try {
+        const selectedLanguage = languageSelect.value;
+        const response = await fetch('/generate-code', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' }
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            prompt: voiceInput,
+            language: selectedLanguage
+          })
         });
 
         if (!response.ok) {
-          throw new Error('Voice service unavailable');
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const result = await response.json();
-
-        setListeningState(false);
-        setProcessingState(false);
-
-        if (result.error) {
-          showError(result.error);
+        const data = await response.json();
+        
+        if (data.success) {
+          showResults({
+            voice_input: voiceInput,
+            code: data.code,
+            language: selectedLanguage
+          });
+          setProcessingState(false);
         } else {
-          showResults(result);
+          throw new Error(data.error || 'Failed to generate code');
         }
-
       } catch (error) {
-        setListeningState(false);
+        console.error('Error generating code:', error);
+        showError('Failed to generate code: ' + error.message);
         setProcessingState(false);
-        showError(`Connection failed: ${error.message}`);
-      }
-    });
-
-    function setListeningState(listening) {
-      isListening = listening;
-      micButton.classList.toggle('listening', listening);
-      
-      if (listening) {
-        micButton.innerHTML = '🔴';
-        setTimeout(() => {
-          if (isListening) {
-            setProcessingState(true);
-          }
-        }, 5000); // Auto-process after 5 seconds
-      } else {
-        micButton.innerHTML = '🎤';
       }
     }
 
     function setProcessingState(processing) {
       isProcessing = processing;
       micButton.classList.toggle('processing', processing);
+      micButton.disabled = processing;
       
       if (processing) {
         micButton.innerHTML = '⚙️';
-        statusText.textContent = '🔄 Processing your voice input...';
+        micButton.title = 'Processing...';
+        statusText.textContent = '🔄 Processing your voice input and generating code...';
         statusText.className = 'status-text processing';
+      } else {
+        micButton.disabled = false;
+        micButton.title = 'Click to start recording (Spacebar)';
       }
     }
 
+    function resetState() {
+      isListening = false;
+      isProcessing = false;
+      micButton.classList.remove('listening', 'processing');
+      micButton.innerHTML = '🎤';
+      micButton.disabled = false;
+      micButton.title = 'Click to start recording (Spacebar)';
+      clearTimeout(recognitionTimer);
+      clearTimeout(silenceTimer);
+    }
+
+    // Display results
     function showResults(result) {
+      voiceInputDisplay.textContent = result.voice_input;
+      generatedCode.textContent = result.code;
+      
       resultsSection.classList.remove('hidden');
       copyAllButton.classList.remove('hidden');
-
-      // Display voice input
-      voiceInputDisplay.textContent = `"${result.voice_input}"`;
-
-      // Display generated code
-      generatedCode.textContent = result.code || 'No code generated';
-
-      // Update status
-      statusText.textContent = '✅ Code generated successfully!';
+      
+      statusText.textContent = `✅ Code generated successfully in ${result.language || 'selected language'}!`;
       statusText.className = 'status-text success';
-
-      // Scroll to results
-      resultsSection.scrollIntoView({ behavior: 'smooth' });
-    }
-
-    function showError(error) {
-      statusText.textContent = `❌ ${error}`;
-      statusText.className = 'status-text error';
-    }
-
-    // Copy functionality
-    document.getElementById('copy-code-button').addEventListener('click', () => {
-      copyToClipboard(generatedCode.textContent);
-    });
-
-    document.getElementById('copy-all-button').addEventListener('click', () => {
-      const allContent = `Voice Input: ${voiceInputDisplay.textContent}\n\nGenerated Code:\n${generatedCode.textContent}`;
-      copyToClipboard(allContent);
-    });
-
-    function copyToClipboard(text) {
-      navigator.clipboard.writeText(text).then(() => {
-        showTemporaryMessage('Copied to clipboard!');
-      }).catch(() => {
-        showTemporaryMessage('Copy failed - please select and copy manually');
+      
+      // Smooth scroll to results
+      resultsSection.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start' 
       });
     }
 
-    function showTemporaryMessage(message) {
-      const originalStatus = statusText.textContent;
-      const originalClass = statusText.className;
-      
-      statusText.textContent = message;
-      statusText.className = 'status-text success';
-      
-      setTimeout(() => {
-        statusText.textContent = originalStatus;
-        statusText.className = originalClass;
-      }, 2000);
+    // Error handling
+    function showError(message) {
+      statusText.textContent = `❌ ${message}`;
+      statusText.className = 'status-text error';
     }
 
-    // Clear results
-    document.getElementById('clear-button').addEventListener('click', () => {
+    // Utility functions
+    function copyToClipboard(text, successMessage) {
+      navigator.clipboard.writeText(text).then(() => {
+        const originalText = statusText.textContent;
+        const originalClass = statusText.className;
+        
+        statusText.textContent = successMessage;
+        statusText.className = 'status-text success';
+        
+        setTimeout(() => {
+          statusText.textContent = originalText;
+          statusText.className = originalClass;
+        }, 2000);
+      }).catch(err => {
+        console.error('Failed to copy to clipboard:', err);
+        showError('Failed to copy to clipboard');
+      });
+    }
+
+    function clearResults() {
       resultsSection.classList.add('hidden');
       copyAllButton.classList.add('hidden');
       voiceInputDisplay.textContent = 'Your spoken words will appear here...';
       generatedCode.textContent = 'Generated code will appear here...';
       statusText.textContent = 'Click the microphone to start voice coding';
       statusText.className = 'status-text';
-    });
+    }
 
-    // Keyboard shortcuts
-    document.addEventListener('keydown', (e) => {
-      if (e.code === 'Space' && !isListening && !isProcessing) {
-        e.preventDefault();
-        micButton.click();
+    // Simulate voice input for suggestions
+    function simulateVoiceInput(text) {
+      processVoiceInput(text);
+    }
+
+    // Additional utility functions
+    function showSuccess(message) {
+      statusText.textContent = `✅ ${message}`;
+      statusText.className = 'status-text success';
+    }
+
+    function showWarning(message) {
+      statusText.textContent = `⚠️ ${message}`;
+      statusText.className = 'status-text warning';
+    }
+
+    // Auto-detect language from voice input (optional enhancement)
+    function detectLanguageFromInput(input) {
+      const languageKeywords = {
+        'python': ['python', 'django', 'flask', 'numpy', 'pandas', 'def ', 'import '],
+        'javascript': ['javascript', 'js', 'node', 'react', 'vue', 'angular', 'function', 'const ', 'let '],
+        'java': ['java', 'spring', 'class ', 'public static', 'system.out'],
+        'cpp': ['c++', 'cpp', 'iostream', 'using namespace', 'cout', '#include'],
+        'html': ['html', 'webpage', 'website', 'form', 'div', 'span', 'button'],
+        'css': ['css', 'style', 'stylesheet', 'color', 'background', 'margin', 'padding'],
+        'php': ['php', 'laravel', 'wordpress', 'echo', '$_GET', '$_POST'],
+        'ruby': ['ruby', 'rails', 'gem', 'def ', 'end'],
+        'go': ['golang', 'go lang', 'goroutine', 'package main', 'fmt.'],
+        'rust': ['rust', 'cargo', 'fn ', 'mut', 'match'],
+        'typescript': ['typescript', 'interface', 'type', 'generic']
+      };
+
+      const lowerInput = input.toLowerCase();
+      
+      for (const [lang, keywords] of Object.entries(languageKeywords)) {
+        for (const keyword of keywords) {
+          if (lowerInput.includes(keyword)) {
+            return lang;
+          }
+        }
       }
       
-      if (e.key === 'Escape' && (isListening || isProcessing)) {
-        setListeningState(false);
-        setProcessingState(false);
-        statusText.textContent = 'Voice input cancelled';
-        statusText.className = 'status-text';
-      }
-    });
+      return null;
+    }
 
-    // Add helpful hints
+    // Enhanced voice input processing with language detection
+    async function processVoiceInputWithDetection(voiceInput) {
+      const detectedLang = detectLanguageFromInput(voiceInput);
+      if (detectedLang && detectedLang !== languageSelect.value) {
+        languageSelect.value = detectedLang;
+        showWarning(`Detected ${detectedLang.toUpperCase()} - language updated automatically`);
+        setTimeout(() => {
+          processVoiceInput(voiceInput);
+        }, 1000);
+      } else {
+        processVoiceInput(voiceInput);
+      }
+    }
+
+    // Network error handling
+    function handleNetworkError(error) {
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        showError('Network error - please check your internet connection');
+      } else if (error.message.includes('500')) {
+        showError('Server error - please try again later');
+      } else if (error.message.includes('429')) {
+        showError('Too many requests - please wait a moment and try again');
+      } else {
+        showError('Connection failed - please try again');
+      }
+    }
+
+    // Enhanced error handling for the fetch request
+    async function enhancedProcessVoiceInput(voiceInput) {
+      if (!voiceInput || voiceInput.length < 3) {
+        showError('Speech too short - please describe what code you want');
+        resetState();
+        return;
+      }
+
+      console.log('Processing voice input:', voiceInput);
+      resetState();
+      setProcessingState(true);
+
+      const maxRetries = 3;
+      let retries = 0;
+
+      while (retries < maxRetries) {
+        try {
+          const selectedLanguage = languageSelect.value;
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
+          const response = await fetch('/generate-code', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              prompt: voiceInput,
+              language: selectedLanguage
+            }),
+            signal: controller.signal
+          });
+
+          clearTimeout(timeoutId);
+
+          if (!response.ok) {
+            if (response.status === 429 && retries < maxRetries - 1) {
+              retries++;
+              showWarning(`Rate limited - retrying in ${retries * 2} seconds...`);
+              await new Promise(resolve => setTimeout(resolve, retries * 2000));
+              continue;
+            }
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const data = await response.json();
+          
+          if (data.success) {
+            showResults({
+              voice_input: voiceInput,
+              code: data.code,
+              language: selectedLanguage,
+              explanation: data.explanation
+            });
+            setProcessingState(false);
+            return;
+          } else {
+            throw new Error(data.error || 'Failed to generate code');
+          }
+        } catch (error) {
+          if (error.name === 'AbortError') {
+            showError('Request timed out - please try with a shorter description');
+            setProcessingState(false);
+            return;
+          }
+          
+          if (retries === maxRetries - 1) {
+            console.error('Error generating code:', error);
+            handleNetworkError(error);
+            setProcessingState(false);
+            return;
+          }
+          
+          retries++;
+          showWarning(`Error occurred - retrying (${retries}/${maxRetries})...`);
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
+    }
+
+    // Replace the original processVoiceInput with the enhanced version
+    window.processVoiceInput = enhancedProcessVoiceInput;
+
+    // Add loading animation for better UX
+    function addLoadingAnimation() {
+      const dots = document.createElement('span');
+      dots.className = 'loading-dots';
+      dots.innerHTML = '<span>.</span><span>.</span><span>.</span>';
+      return dots;
+    }
+
+    // Style for loading dots
+    const style = document.createElement('style');
+    style.textContent = `
+      .loading-dots span {
+        animation: loading 1.4s infinite ease-in-out both;
+      }
+      .loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+      .loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+      @keyframes loading {
+        0%, 80%, 100% { opacity: 0; }
+        40% { opacity: 1; }
+      }
+    `;
+    document.head.appendChild(style);
+
+    // Initialize with welcome message
     setTimeout(() => {
-      if (!resultsSection.classList.contains('hidden')) return;
-      
-      statusText.innerHTML = 'Pro tip: Press <strong>Spacebar</strong> to start recording, <strong>Escape</strong> to cancel';
-      statusText.className = 'status-text';
-    }, 5000);
+      if (recognition) {
+        statusText.textContent = '🎙️ Ready to listen! Click the microphone or press spacebar to start';
+      }
+    }, 1000);
+
+    // Add visual feedback for successful operations
+    function addSuccessAnimation(element) {
+      element.style.transform = 'scale(1.05)';
+      element.style.transition = 'transform 0.3s ease';
+      setTimeout(() => {
+        element.style.transform = 'scale(1)';
+      }, 300);
+    }
+
+    // Enhance the copy functionality with animation
+    function enhancedCopyToClipboard(text, successMessage, element) {
+      navigator.clipboard.writeText(text).then(() => {
+        addSuccessAnimation(element);
+        showSuccess(successMessage);
+        
+        setTimeout(() => {
+          statusText.textContent = 'Click the microphone to start voice coding';
+          statusText.className = 'status-text';
+        }, 3000);
+      }).catch(err => {
+        console.error('Failed to copy to clipboard:', err);
+        showError('Failed to copy to clipboard - please select and copy manually');
+      });
+    }
+
+    // Update copy button event listeners with enhanced functionality
+    document.getElementById('copy-code-button').onclick = () => {
+      enhancedCopyToClipboard(
+        generatedCode.textContent, 
+        'Code copied to clipboard!',
+        document.getElementById('copy-code-button')
+      );
+    };
+
+    copyAllButton.onclick = () => {
+      const allContent = `Voice Input: ${voiceInputDisplay.textContent}\n\nGenerated Code:\n${generatedCode.textContent}`;
+      enhancedCopyToClipboard(
+        allContent, 
+        'All content copied to clipboard!',
+        copyAllButton
+      );
+    };
   </script>
 </body>
 </html>

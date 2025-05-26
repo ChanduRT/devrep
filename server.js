@@ -37,7 +37,7 @@ const FLASK_BACKEND_URL = 'http://localhost:5000';
 async function callFlaskAPI(endpoint, data = {}) {
   try {
     const response = await axios.post(`${FLASK_BACKEND_URL}${endpoint}`, data, {
-      timeout: 30000,
+      timeout: 60000, // Increased timeout for code execution
       headers: { 'Content-Type': 'application/json' }
     });
     return response.data;
@@ -81,7 +81,9 @@ app.get('/health', async (req, res) => {
       services: {
         node_server: 'running',
         python_backend: pythonHealthCheck.data.status || 'unknown',
-        flask_services: pythonHealthCheck.data.services || {}
+        flask_services: pythonHealthCheck.data.services || {},
+        piston_api: pythonHealthCheck.data.services?.piston || 'unknown',
+        codellama: pythonHealthCheck.data.services?.codellama || 'unknown'
       }
     });
   } catch (error) {
@@ -97,7 +99,35 @@ app.get('/health', async (req, res) => {
   }
 });
 
-// Code analysis endpoint
+// Code execution endpoint using Piston API
+app.post('/execute', async (req, res) => {
+  try {
+    const { code, language } = req.body;
+    
+    if (!code) {
+      return res.status(400).json({ error: 'No code provided' });
+    }
+    
+    console.log(`Executing ${language} code via Piston API...`);
+    const result = await callFlaskAPI('/execute', { code, language });
+    
+    res.json({
+      output: result.output || 'Code executed successfully',
+      success: result.success !== false,
+      runtime: result.runtime || 'Unknown runtime',
+      error: result.error || null
+    });
+  } catch (error) {
+    console.error('Code execution error:', error.message);
+    res.status(500).json({ 
+      output: `Execution failed: ${error.message}`,
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Code analysis endpoint using CodeLlama
 app.post('/analyze', async (req, res) => {
   try {
     const { code, language } = req.body;
@@ -106,9 +136,11 @@ app.post('/analyze', async (req, res) => {
       return res.status(400).json({ error: 'No code provided' });
     }
     
+    console.log(`Analyzing ${language} code with CodeLlama...`);
     const result = await callFlaskAPI('/analyze', { code, language });
     res.json(result);
   } catch (error) {
+    console.error('Code analysis error:', error.message);
     res.status(500).json({ error: error.message });
   }
 });
@@ -132,46 +164,6 @@ app.post('/checklint', async (req, res) => {
   } catch (error) {
     res.status(500).json({ 
       comments: `Analysis failed: ${error.message}`,
-      success: false 
-    });
-  }
-});
-
-// Code execution endpoint (mock implementation)
-app.post('/execute', async (req, res) => {
-  try {
-    const { code, language } = req.body;
-    
-    if (!code) {
-      return res.status(400).json({ error: 'No code provided' });
-    }
-    
-    // Mock execution - in production, you'd implement proper sandboxed execution
-    let output = '';
-    
-    switch (language) {
-      case 'javascript':
-        try {
-          // Simple eval for basic JavaScript (NOT for production)
-          const result = eval(code);
-          output = result !== undefined ? String(result) : 'Code executed successfully';
-        } catch (evalError) {
-          output = `JavaScript Error: ${evalError.message}`;
-        }
-        break;
-      
-      case 'python':
-        output = 'Python execution requires a Python runtime. Code analysis completed.';
-        break;
-      
-      default:
-        output = `${language} execution not implemented. Code syntax appears valid.`;
-    }
-    
-    res.json({ output, success: true });
-  } catch (error) {
-    res.status(500).json({ 
-      output: `Execution failed: ${error.message}`,
       success: false 
     });
   }
@@ -232,6 +224,30 @@ app.post('/chat', async (req, res) => {
   }
 });
 
+// Get supported languages endpoint
+app.get('/languages', async (req, res) => {
+  try {
+    // Return supported languages for Piston API
+    const supportedLanguages = [
+      { id: 'javascript', name: 'JavaScript', extension: 'js' },
+      { id: 'python', name: 'Python', extension: 'py' },
+      { id: 'java', name: 'Java', extension: 'java' },
+      { id: 'cpp', name: 'C++', extension: 'cpp' },
+      { id: 'c', name: 'C', extension: 'c' },
+      { id: 'csharp', name: 'C#', extension: 'cs' },
+      { id: 'php', name: 'PHP', extension: 'php' },
+      { id: 'ruby', name: 'Ruby', extension: 'rb' },
+      { id: 'go', name: 'Go', extension: 'go' },
+      { id: 'rust', name: 'Rust', extension: 'rs' },
+      { id: 'typescript', name: 'TypeScript', extension: 'ts' }
+    ];
+    
+    res.json({ languages: supportedLanguages });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({ error: 'Endpoint not found' });
@@ -243,10 +259,18 @@ app.listen(port, () => {
   console.log(`📁 Views directory: ${join(__dirname, 'views')}`);
   console.log(`📦 Static files: ${join(__dirname, 'public')}`);
   console.log(`🔗 Flask backend expected at: ${FLASK_BACKEND_URL}`);
-  console.log('\n🔧 Make sure to:');
-  console.log('1. Start the Flask backend server (python app.py)');
-  console.log('2. Install required dependencies (npm install)');
-  console.log('3. Configure your Gemini API key in app.py');
+  console.log('\n🔧 Services Integration:');
+  console.log('✅ Code Execution: Piston API (online)');
+  console.log('✅ Code Analysis: CodeLlama (local Ollama)');
+  console.log('✅ Report Generation: Gemini API');
+  console.log('✅ Voice Features: Gemini API + Speech Recognition');
+  console.log('\n📋 Setup Checklist:');
+  console.log('1. Start Flask backend: python app.py');
+  console.log('2. Start Ollama: ollama serve');
+  console.log('3. Pull CodeLlama: ollama pull codellama');
+  console.log('4. Set Gemini API key in Flask app');
+  console.log('5. Install dependencies: npm install');
+  console.log('\n🌐 Server ready at http://localhost:3000');
 });
 
 export default app;
