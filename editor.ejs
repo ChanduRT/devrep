@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DEV IDE - Advanced Code Editor</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/monokai.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e1e2e 0%, #2d2d44 100%);
+            color: #e0e0e0;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2d2d44 0%, #1e1e2e 100%);
+            padding: 15px 20px;
+            border-bottom: 2px solid #3d3d5c;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #00d4ff;
+        }
+
+        .logo i {
+            font-size: 28px;
+            color: #ff6b6b;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .language-selector {
+            background: #3d3d5c;
+            border: 1px solid #5d5d7c;
+            color: #e0e0e0;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .theme-selector {
+            background: #3d3d5c;
+            border: 1px solid #5d5d7c;
+            color: #e0e0e0;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .status-indicator {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4ade80;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.error {
+            background: #ef4444;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .main-container {
+            display: flex;
+            height: calc(100vh - 80px);
+        }
+
+        .sidebar {
+            width: 60px;
+            background: #2d2d44;
+            border-right: 2px solid #3d3d5c;
+            display: flex;
+            flex-direction: column;
+            padding: 10px 0;
+            transition: width 0.3s ease;
+        }
+
+        .sidebar:hover {
+            width: 200px;
+        }
+
+        .sidebar-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px 20px;
+            background: none;
+            border: none;
+            color: #a0a0a0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .sidebar-btn:hover {
+            background: #3d3d5c;
+            color: #00d4ff;
+        }
+
+        .sidebar-btn.active {
+            background: #00d4ff;
+            color: #1e1e2e;
+        }
+
+        .sidebar-btn i {
+            min-width: 20px;
+            font-size: 18px;
+        }
+
+        .sidebar-btn span {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .sidebar:hover .sidebar-btn span {
+            opacity: 1;
+        }
+
+        .editor-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .editor-toolbar {
+            background: #2d2d44;
+            border-bottom: 1px solid #3d3d5c;
+            padding: 10px 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+        }
+
+        .btn.danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+        }
+
+        .btn.success {
+            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+        }
+
+        .btn.warning {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .editor-wrapper {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .CodeMirror {
+            height: 100%;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .right-panel {
+            width: 400px;
+            background: #1e1e2e;
+            border-left: 2px solid #3d3d5c;
+            display: flex;
+            flex-direction: column;
+            resize: horizontal;
+            min-width: 300px;
+            max-width: 600px;
+        }
+
+        .panel-tabs {
+            display: flex;
+            background: #2d2d44;
+            border-bottom: 1px solid #3d3d5c;
+        }
+
+        .panel-tab {
+            flex: 1;
+            padding: 12px 16px;
+            background: none;
+            border: none;
+            color: #a0a0a0;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
+        }
+
+        .panel-tab.active {
+            color: #00d4ff;
+            border-bottom-color: #00d4ff;
+        }
+
+        .panel-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .panel-content.active {
+            display: block;
+        }
+
+        .output-area {
+            background: #0f0f1a;
+            border: 1px solid #3d3d5c;
+            border-radius: 6px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+            color: #e0e0e0;
+        }
+
+        .analysis-item {
+            background: #2d2d44;
+            border: 1px solid #3d3d5c;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #00d4ff;
+        }
+
+        .analysis-item.error {
+            border-left-color: #ef4444;
+        }
+
+        .analysis-item.warning {
+            border-left-color: #fbbf24;
+        }
+
+        .analysis-item.info {
+            border-left-color: #3b82f6;
+        }
+
+        .voice-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .voice-input-area {
+            background: #2d2d44;
+            border: 1px solid #3d3d5c;
+            border-radius: 6px;
+            padding: 15px;
+            color: #e0e0e0;
+            min-height: 100px;
+            font-family: inherit;
+            resize: vertical;
+        }
+
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .chat-messages {
+            background: #0f0f1a;
+            border: 1px solid #3d3d5c;
+            border-radius: 6px;
+            padding: 15px;
+            height: 200px;
+            overflow-y: auto;
+        }
+
+        .chat-message {
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            background: #2d2d44;
+        }
+
+        .chat-message.user {
+            background: #00d4ff;
+            color: #1e1e2e;
+            margin-left: 20px;
+        }
+
+        .chat-message.assistant {
+            background: #3d3d5c;
+            margin-right: 20px;
+        }
+
+        .chat-input-area {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            background: #2d2d44;
+            border: 1px solid #3d3d5c;
+            border-radius: 6px;
+            padding: 10px;
+            color: #e0e0e0;
+            font-family: inherit;
+        }
+
+        .loading {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid #3d3d5c;
+            border-top: 2px solid #00d4ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #2d2d44;
+            border: 1px solid #3d3d5c;
+            border-radius: 8px;
+            padding: 15px 20px;
+            color: #e0e0e0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            border-left: 4px solid #4ade80;
+        }
+
+        .notification.error {
+            border-left: 4px solid #ef4444;
+        }
+
+        .notification.warning {
+            border-left: 4px solid #fbbf24;
+        }
+
+        .file-info {
+            background: #2d2d44;
+            border: 1px solid #3d3d5c;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 15px;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .line-count {
+            color: #a0a0a0;
+        }
+
+        @media (max-width: 1200px) {
+            .right-panel {
+                width: 350px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+            }
+            
+            .right-panel {
+                width: 100%;
+                height: 300px;
+                border-left: none;
+                border-top: 2px solid #3d3d5c;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+                flex-direction: row;
+                overflow-x: auto;
+                border-right: none;
+                border-bottom: 2px solid #3d3d5c;
+            }
+            
+            .sidebar-btn {
+                flex: 0 0 auto;
+                padding: 10px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <i class="fas fa-code"></i>
+            DEV IDE
+        </div>
+        <div class="header-controls">
+            <select id="languageSelect" class="language-selector">
+                <option value="javascript">JavaScript</option>
+                <option value="python">Python</option>
+                <option value="java">Java</option>
+                <option value="cpp">C++</option>
+                <option value="c">C</option>
+                <option value="csharp">C#</option>
+                <option value="php">PHP</option>
+                <option value="ruby">Ruby</option>
+                <option value="go">Go</option>
+                <option value="rust">Rust</option>
+                <option value="typescript">TypeScript</option>
+            </select>
+            <select id="themeSelect" class="theme-selector">
+                <option value="monokai">Monokai</option>
+                <option value="dracula">Dracula</option>
+                <option value="material-darker">Material Dark</option>
+                <option value="default">Default</option>
+            </select>
+            <div class="status-indicator">
+                <div class="status-dot" id="statusDot"></div>
+                <span id="statusText">Ready</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="sidebar">
+            <button class="sidebar-btn active" data-panel="output">
+                <i class="fas fa-terminal"></i>
+                <span>Output</span>
+            </button>
+            <button class="sidebar-btn" data-panel="analysis">
+                <i class="fas fa-bug"></i>
+                <span>Analysis</span>
+            </button>
+            <button class="sidebar-btn" data-panel="report">
+                <i class="fas fa-chart-line"></i>
+                <span>Report</span>
+            </button>
+            <button class="sidebar-btn" data-panel="voice">
+                <i class="fas fa-microphone"></i>
+                <span>Voice</span>
+            </button>
+            <button class="sidebar-btn" data-panel="chat">
+                <i class="fas fa-comments"></i>
+                <span>AI Chat</span>
+            </button>
+        </div>
+
+        <div class="editor-container">
+            <div class="editor-toolbar">
+                <button class="btn" id="runBtn">
+                    <i class="fas fa-play"></i>
+                    Run Code
+                </button>
+                <button class="btn warning" id="analyzeBtn">
+                    <i class="fas fa-search"></i>
+                    Analyze
+                </button>
+                <button class="btn success" id="reportBtn">
+                    <i class="fas fa-file-alt"></i>
+                    Generate Report
+                </button>
+                <button class="btn danger" id="clearBtn">
+                    <i class="fas fa-trash"></i>
+                    Clear
+                </button>
+                <button class="btn" id="saveBtn">
+                    <i class="fas fa-save"></i>
+                    Save
+                </button>
+                <button class="btn" id="loadBtn">
+                    <i class="fas fa-folder-open"></i>
+                    Load
+                </button>
+            </div>
+            
+            <div class="file-info">
+                <span>
+                    <i class="fas fa-file-code"></i>
+                    <span id="fileName">untitled.js</span>
+                </span>
+                <span class="line-count" id="lineCount">Lines: 1</span>
+            </div>
+
+            <div class="editor-wrapper">
+                <textarea id="codeEditor" placeholder="Start coding here...">// Welcome to DEV IDE - AI-Powered Code Editor
+// Features:
+// - Real-time code execution with Piston API
+// - AI-powered code analysis with CodeLlama
+// - Comprehensive report generation with Gemini
+// - Voice-to-code functionality
+// - AI chat assistant for coding help
+
+console.log("Hello, DEV IDE!");
+
+function fibonacci(n) {
+    if (n <= 1) return n;
+    return fibonacci(n - 1) + fibonacci(n - 2);
+}
+
+console.log("Fibonacci sequence:");
+for (let i = 0; i < 10; i++) {
+    console.log(`F(${i}) = ${fibonacci(i)}`);
+}</textarea>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="panel-tabs">
+                <button class="panel-tab active" data-tab="output">Output</button>
+                <button class="panel-tab" data-tab="analysis">Analysis</button>
+                <button class="panel-tab" data-tab="report">Report</button>
+                <button class="panel-tab" data-tab="voice">Voice</button>
+                <button class="panel-tab" data-tab="chat">AI Chat</button>
+            </div>
+
+            <div class="panel-content active" id="outputPanel">
+                <h3><i class="fas fa-terminal"></i> Execution Output</h3>
+                <div class="output-area" id="outputArea">Ready to execute code...</div>
+            </div>
+
+            <div class="panel-content" id="analysisPanel">
+                <h3><i class="fas fa-bug"></i> Code Analysis</h3>
+                <div id="analysisResults">
+                    <p>Click "Analyze" to get AI-powered code analysis...</p>
+                </div>
+            </div>
+
+            <div class="panel-content" id="reportPanel">
+                <h3><i class="fas fa-chart-line"></i> Code Report</h3>
+                <div class="output-area" id="reportArea">Click "Generate Report" to create a comprehensive code analysis report...</div>
+            </div>
+
+            <div class="panel-content" id="voicePanel">
+                <h3><i class="fas fa-microphone"></i> Voice-to-Code</h3>
+                <div class="voice-controls">
+                    <button class="btn" id="voiceBtn">
+                        <i class="fas fa-microphone"></i>
+                        Start Voice Input
+                    </button>
+                    <textarea class="voice-input-area" id="voiceInput" placeholder="Voice input will appear here..." readonly></textarea>
+                    <button class="btn success" id="generateCodeBtn">
+                        <i class="fas fa-code"></i>
+                        Generate Code
+                    </button>
+                </div>
+            </div>
+
+            <div class="panel-content" id="chatPanel">
+                <h3><i class="fas fa-comments"></i> AI Assistant</h3>
+                <div class="chat-container">
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="chat-message assistant">
+                            <strong>AI Assistant:</strong> Hello! I'm here to help you with your code. Ask me anything about programming, debugging, or best practices!
+                        </div>
+                    </div>
+                    <div class="chat-input-area">
+                        <input type="text" class="chat-input" id="chatInput" placeholder="Ask about your code...">
+                        <button class="btn" id="sendChatBtn">
+                            <i class="fas fa-paper-plane"></i>
+                            Send
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <input type="file" id="fileInput" accept=".js,.py,.java,.cpp,.c,.cs,.php,.rb,.go,.rs,.ts" style="display: none;">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+<script>
+    window.jsPDF = window.jspdf.jsPDF;
+</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/php/php.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/ruby/ruby.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/go/go.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/rust/rust.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/selection/active-line.min.js"></script>
+
+    <script>
+        // Initialize CodeMirror editor
+        const editor = CodeMirror.fromTextArea(document.getElementById('codeEditor'), {
+            lineNumbers: true,
+            mode: 'javascript',
+            theme: 'monokai',
+            autoCloseBrackets: true,
+            matchBrackets: true,
+            styleActiveLine: true,
+            indentUnit: 4,
+            lineWrapping: true,
+            extraKeys: {
+                'Ctrl-Enter': runCode,
+                'Ctrl-S': saveCode,
+                'Ctrl-O': loadCode,
+                'F5': runCode
+            }
+        });
+
+        // Language mode mappings
+        const languageModes = {
+            javascript: 'javascript',
+            typescript: 'javascript',
+            python: 'python',
+            java: 'text/x-java',
+            cpp: 'text/x-c++src',
+            c: 'text/x-csrc',
+            csharp: 'text/x-csharp',
+            php: 'php',
+            ruby: 'ruby',
+            go: 'go',
+            rust: 'rust'
+        };
+
+        // Language file extensions
+        const languageExtensions = {
+            javascript: 'js',
+            typescript: 'ts',
+            python: 'py',
+            java: 'java',
+            cpp: 'cpp',
+            c: 'c',
+            csharp: 'cs',
+            php: 'php',
+            ruby: 'rb',
+            go: 'go',
+            rust: 'rs'
+        };
+
+        let currentLanguage = 'javascript';
+        let isExecuting = false;
+        let analysisResults = [];
+
+        // Update line count
+        function updateLineCount() {
+            const lineCount = editor.lineCount();
+            document.getElementById('lineCount').textContent = `Lines: ${lineCount}`;
+        }
+
+        // Update file name
+        function updateFileName() {
+            const extension = languageExtensions[currentLanguage] || 'txt';
+            document.getElementById('fileName').textContent = `untitled.${extension}`;
+        }
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type} show`;
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Update status
+        function updateStatus(text, isError = false) {
+            const statusText = document.getElementById('statusText');
+            const statusDot = document.getElementById('statusDot');
+            
+            statusText.textContent = text;
+            statusDot.className = `status-dot ${isError ? 'error' : ''}`;
+        }
+
+        // Set loading state for button
+        function setButtonLoading(button, loading = true) {
+            if (loading) {
+                const icon = button.querySelector('i');
+                icon.className = 'fas fa-spinner fa-spin';
+                button.disabled = true;
+            } else {
+                // Restore original icon based on button id
+                const iconMap = {
+                    runBtn: 'fas fa-play',
+                    analyzeBtn: 'fas fa-search',
+                    reportBtn: 'fas fa-file-alt',
+                    voiceBtn: 'fas fa-microphone',
+                    generateCodeBtn: 'fas fa-code',
+                    sendChatBtn: 'fas fa-paper-plane'
+                };
+                const icon = button.querySelector('i');
+                icon.className = iconMap[button.id] || 'fas fa-cog';
+                button.disabled = false;
+            }
+        }
+
+        // Run code
+        async function runCode() {
+            if (isExecuting) return;
+            
+            const runBtn = document.getElementById('runBtn');
+            const outputArea = document.getElementById('outputArea');
+            
+            try {
+                isExecuting = true;
+                setButtonLoading(runBtn);
+                updateStatus('Executing code...');
+                
+                const code = editor.getValue();
+                if (!code.trim()) {
+                    throw new Error('No code to execute');
+                }
+
+                const response = await fetch('/execute', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code, language: currentLanguage })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    outputArea.textContent = result.output;
+                    updateStatus(`Executed successfully (${result.runtime})`);
+                    showNotification('Code executed successfully!', 'success');
+                    switchToPanel('output');
+                } else {
+                    throw new Error(result.error || 'Execution failed');
+                }
+            } catch (error) {
+                outputArea.textContent = `Error: ${error.message}`;
+                updateStatus('Execution failed', true);
+                showNotification(`Execution failed: ${error.message}`, 'error');
+                switchToPanel('output');
+            } finally {
+                isExecuting = false;
+                setButtonLoading(runBtn, false);
+            }
+        }
+
+        // Analyze code
+        async function analyzeCode() {
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const analysisResults = document.getElementById('analysisResults');
+
+    try {
+        setButtonLoading(analyzeBtn);
+        updateStatus('Analyzing code...');
+
+        const code = editor.getValue();
+        if (!code.trim()) {
+            throw new Error('No code to analyze');
+        }
+
+        // Timeout controller
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 300000); // 5 minutes
+
+        const response = await fetch('/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code, language: currentLanguage }),
+            signal: controller.signal
+        });
+
+        clearTimeout(timeout);
+
+        const result = await response.json();
+
+        if (result.analysis_result && result.analysis_result.length > 0) {
+
+            // Inline escape HTML function
+            const escapeHtml = (text) => {
+                return text.replace(/[&<>"']/g, (m) => {
+                    switch (m) {
+                        case '&': return '&amp;';
+                        case '<': return '&lt;';
+                        case '>': return '&gt;';
+                        case '"': return '&quot;';
+                        case "'": return '&#39;';
+                        default: return m;
+                    }
+                });
+            };
+
+            // Format each analysis item
+            const analysisHtml = result.analysis_result.map(analysis => {
+                // Split by ``` for code snippets
+                const parts = analysis.split(/```([\s\S]*?)```/g);
+
+                // Map parts to formatted HTML
+                return '<div class="analysis-item info">' + parts.map((part, index) => {
+                    if (index % 2 === 1) {
+                        // code snippet
+                        return `<pre class="analysis-code">${escapeHtml(part)}</pre>`;
+                    } else {
+                        // normal text, split by sentences or new lines
+                        const paragraphs = part.split(/(?:\.\s+|\n+)/).filter(Boolean);
+                        return paragraphs.map(p => `<p>${escapeHtml(p.trim())}.</p>`).join('');
+                    }
+                }).join('') + '</div>';
+            }).join('');
+
+            analysisResults.innerHTML = analysisHtml;
+            updateStatus('Analysis complete');
+            showNotification('Code analysis complete!', 'success');
+            switchToPanel('analysis');
+        } else {
+            throw new Error('No analysis results received');
+        }
+    } catch (error) {
+        if (error.name === 'AbortError') {
+            analysisResults.innerHTML = `<div class="analysis-item error">Analysis timed out. Please try again later.</div>`;
+            updateStatus('Analysis timed out', true);
+            showNotification('Analysis timed out. Please try again.', 'error');
+        } else {
+            analysisResults.innerHTML = `<div class="analysis-item error">Analysis failed: ${error.message}</div>`;
+            updateStatus('Analysis failed', true);
+            showNotification(`Analysis failed: ${error.message}`, 'error');
+        }
+        switchToPanel('analysis');
+    } finally {
+        setButtonLoading(analyzeBtn, false);
+    }
+}
+
+
+        // Generate report
+        async function generateReport() {
+    const reportBtn = document.getElementById('reportBtn');
+    const reportArea = document.getElementById('reportArea');
+
+    try {
+        setButtonLoading(reportBtn);
+        updateStatus('Generating report...');
+
+        const code = editor.getValue();
+        if (!code.trim()) {
+            throw new Error('No code to generate report for');
+        }
+
+        const response = await fetch('/report', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                code,
+                language: currentLanguage,
+                code_sum: analysisResults
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.report) {
+            reportArea.textContent = result.report;
+            updateStatus('Report generated');
+            showNotification('Report generated successfully!', 'success');
+            switchToPanel('report');
+
+            // === PDF CONFIG ===
+            const doc = new jsPDF({
+                unit: 'mm',
+                format: 'a4'
+            });
+
+            const margin = 25.4; // 1 inch = 25.4mm
+            const pageWidth = 210;
+            const pageHeight = 297;
+            const contentWidth = pageWidth - 2 * margin;
+
+            const reportLines = doc.splitTextToSize(result.report, contentWidth);
+            const data = reportLines.map(line => [line]);
+
+            // Generate styled table-like paragraph layout
+            doc.autoTable({
+                body: data,
+                theme: 'plain',
+                styles: {
+                    font: 'times',
+                    fontSize: 11,
+                    cellPadding: 1.5,
+                    overflow: 'linebreak',
+                    halign: 'justify'
+                },
+                margin: { top: 55, bottom: 30, left: margin, right: margin },
+                didDrawPage: function (data) {
+                    // Title on every page
+                    doc.setFont('times', 'bold');
+                    doc.setFontSize(14);
+                    doc.text('Code Analysis Report', pageWidth / 2, 30, { align: 'center' });
+
+                    // Author
+                    doc.setFont('times', 'normal');
+                    doc.setFontSize(11);
+                    doc.text('Generated by Smart IDE', pageWidth / 2, 38, { align: 'center' });
+
+                    // Page border
+                    doc.setDrawColor(0);
+                    doc.rect(margin - 5, 20, pageWidth - (2 * (margin - 5)), pageHeight - 40);
+
+                    // Footer with page number
+                    const pageNumber = doc.internal.getCurrentPageInfo().pageNumber;
+                    const pageCount = doc.internal.getNumberOfPages();
+                    doc.setFontSize(10);
+                    doc.text(`Page ${pageNumber} of ${pageCount}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
+                }
+            });
+
+            // Save PDF
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            doc.save(`IEEE_Style_Code_Report_${timestamp}.pdf`);
+        } else {
+            throw new Error('No report generated');
+        }
+    } catch (error) {
+        reportArea.textContent = `Report generation failed: ${error.message}`;
+        updateStatus('Report generation failed', true);
+        showNotification(`Report generation failed: ${error.message}`, 'error');
+        switchToPanel('report');
+    } finally {
+        setButtonLoading(reportBtn, false);
+    }
+}
+
+
+
+        // Voice to code
+        async function startVoiceInput() {
+            const voiceBtn = document.getElementById('voiceBtn');
+            const voiceInput = document.getElementById('voiceInput');
+            
+            try {
+                setButtonLoading(voiceBtn);
+                updateStatus('Listening for voice input...');
+                voiceInput.value = 'Listening...';
+                
+                const response = await fetch('/voice-to-code', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({})
+                });
+
+                const result = await response.json();
+                
+                if (result.voice_input && !result.error) {
+                    voiceInput.value = result.voice_input;
+                    updateStatus('Voice input captured');
+                    showNotification('Voice input captured successfully!', 'success');
+                } else {
+                    throw new Error(result.error || 'Voice input failed');
+                }
+            } catch (error) {
+                voiceInput.value = `Voice input failed: ${error.message}`;
+                updateStatus('Voice input failed', true);
+                showNotification(`Voice input failed: ${error.message}`, 'error');
+            } finally {
+                setButtonLoading(voiceBtn, false);
+            }
+        }
+
+        // Generate code from voice
+        async function generateCodeFromVoice() {
+            const generateBtn = document.getElementById('generateCodeBtn');
+            const voiceInput = document.getElementById('voiceInput');
+            
+            try {
+                const prompt = voiceInput.value.trim();
+                if (!prompt) {
+                    throw new Error('No voice input to generate code from');
+                }
+
+                setButtonLoading(generateBtn);
+                updateStatus('Generating code from voice...');
+                
+                const response = await fetch('/voice-to-code', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ voice_input: prompt })
+                });
+
+                const result = await response.json();
+                
+                if (result.code && !result.error) {
+                    editor.setValue(result.code);
+                    updateStatus('Code generated from voice');
+                    showNotification('Code generated successfully!', 'success');
+                    updateLineCount();
+                } else {
+                    throw new Error(result.error || 'Code generation failed');
+                }
+            } catch (error) {
+                updateStatus('Code generation failed', true);
+                showNotification(`Code generation failed: ${error.message}`, 'error');
+            } finally {
+                setButtonLoading(generateBtn, false);
+            }
+        }
+
+        // Send chat message
+        async function sendChatMessage() {
+            const chatInput = document.getElementById('chatInput');
+            const chatMessages = document.getElementById('chatMessages');
+            const sendBtn = document.getElementById('sendChatBtn');
+            
+            const message = chatInput.value.trim();
+            if (!message) return;
+            
+            // Add user message
+            const userMessage = document.createElement('div');
+            userMessage.className = 'chat-message user';
+            userMessage.innerHTML = `<strong>You:</strong> ${message}`;
+            chatMessages.appendChild(userMessage);
+            
+            chatInput.value = '';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            try {
+                setButtonLoading(sendBtn);
+                
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        message, 
+                        code: editor.getValue() 
+                    })
+                });
+
+                const result = await response.json();
+                
+                const assistantMessage = document.createElement('div');
+                assistantMessage.className = 'chat-message assistant';
+                assistantMessage.innerHTML = `<strong>AI Assistant:</strong> ${result.response || 'Sorry, I could not process your request.'}`;
+                chatMessages.appendChild(assistantMessage);
+                
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            } catch (error) {
+                const errorMessage = document.createElement('div');
+                errorMessage.className = 'chat-message assistant';
+                errorMessage.innerHTML = `<strong>AI Assistant:</strong> Sorry, I'm having trouble connecting. Please try again.`;
+                chatMessages.appendChild(errorMessage);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            } finally {
+                setButtonLoading(sendBtn, false);
+            }
+        }
+
+        // Clear editor
+        function clearEditor() {
+            if (confirm('Are you sure you want to clear the editor?')) {
+                editor.setValue('');
+                document.getElementById('outputArea').textContent = 'Ready to execute code...';
+                document.getElementById('analysisResults').innerHTML = '<p>Click "Analyze" to get AI-powered code analysis...</p>';
+                document.getElementById('reportArea').textContent = 'Click "Generate Report" to create a comprehensive code analysis report...';
+                updateLineCount();
+                updateStatus('Editor cleared');
+                showNotification('Editor cleared', 'info');
+            }
+        }
+
+        // Save code
+        function saveCode() {
+            const code = editor.getValue();
+            const extension = languageExtensions[currentLanguage] || 'txt';
+            const filename = `code.${extension}`;
+            
+            const blob = new Blob([code], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showNotification(`Code saved as ${filename}`, 'success');
+        }
+
+        // Load code
+        function loadCode() {
+            document.getElementById('fileInput').click();
+        }
+
+        // Switch panel
+        function switchToPanel(panelName) {
+            // Update sidebar buttons
+            document.querySelectorAll('.sidebar-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.panel === panelName) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Update panel tabs
+            document.querySelectorAll('.panel-tab').forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.dataset.tab === panelName) {
+                    tab.classList.add('active');
+                }
+            });
+            
+            // Update panel content
+            document.querySelectorAll('.panel-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`${panelName}Panel`).classList.add('active');
+        }
+
+        // Event listeners
+        document.getElementById('runBtn').addEventListener('click', runCode);
+        document.getElementById('analyzeBtn').addEventListener('click', analyzeCode);
+        document.getElementById('reportBtn').addEventListener('click', generateReport);
+        document.getElementById('clearBtn').addEventListener('click', clearEditor);
+        document.getElementById('saveBtn').addEventListener('click', saveCode);
+        document.getElementById('loadBtn').addEventListener('click', loadCode);
+        document.getElementById('voiceBtn').addEventListener('click', startVoiceInput);
+        document.getElementById('generateCodeBtn').addEventListener('click', generateCodeFromVoice);
+        document.getElementById('sendChatBtn').addEventListener('click', sendChatMessage);
+
+        // Language selector
+        document.getElementById('languageSelect').addEventListener('change', (e) => {
+            currentLanguage = e.target.value;
+            const mode = languageModes[currentLanguage] || 'text/plain';
+            editor.setOption('mode', mode);
+            updateFileName();
+            updateStatus(`Language changed to ${currentLanguage}`);
+        });
+
+        // Theme selector
+        document.getElementById('themeSelect').addEventListener('change', (e) => {
+            editor.setOption('theme', e.target.value);
+            showNotification(`Theme changed to ${e.target.value}`, 'info');
+        });
+
+        // Chat input enter key
+        document.getElementById('chatInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendChatMessage();
+            }
+        });
+
+        // File input handler
+        document.getElementById('fileInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    editor.setValue(e.target.result);
+                    updateLineCount();
+                    
+                    // Try to detect language from file extension
+                    const extension = file.name.split('.').pop().toLowerCase();
+                    const langMap = {
+                        'js': 'javascript',
+                        'ts': 'typescript',
+                        'py': 'python',
+                        'java': 'java',
+                        'cpp': 'cpp',
+                        'c': 'c',
+                        'cs': 'csharp',
+                        'php': 'php',
+                        'rb': 'ruby',
+                        'go': 'go',
+                        'rs': 'rust'
+                    };
+                    
+                    if (langMap[extension]) {
+                        currentLanguage = langMap[extension];
+                        document.getElementById('languageSelect').value = currentLanguage;
+                        const mode = languageModes[currentLanguage] || 'text/plain';
+                        editor.setOption('mode', mode);
+                    }
+                    
+                    document.getElementById('fileName').textContent = file.name;
+                    showNotification(`File loaded: ${file.name}`, 'success');
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        // Sidebar and panel tab event listeners
+        document.querySelectorAll('.sidebar-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                switchToPanel(btn.dataset.panel);
+            });
+        });
+
+        document.querySelectorAll('.panel-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                switchToPanel(tab.dataset.tab);
+            });
+        });
+
+        // Editor event listeners
+        editor.on('change', () => {
+            updateLineCount();
+        });
+
+        editor.on('cursorActivity', () => {
+            const cursor = editor.getCursor();
+            const line = cursor.line + 1;
+            const col = cursor.ch + 1;
+            updateStatus(`Line ${line}, Column ${col}`);
+        });
+
+        // Initialize
+        updateLineCount();
+        updateFileName();
+        updateStatus('Ready');
+
+        // Health check
+        async function checkHealth() {
+            try {
+                const response = await fetch('/health');
+                const health = await response.json();
+                
+                if (health.status === 'healthy') {
+                    updateStatus('All services online');
+                } else {
+                    updateStatus('Some services offline', true);
+                }
+            } catch (error) {
+                updateStatus('Backend offline', true);
+            }
+        }
+
+        // Check health on load and periodically
+        checkHealth();
+        setInterval(checkHealth, 30000);
+
+        // Keyboard shortcuts help
+        console.log('DEV IDE Keyboard Shortcuts:');
+        console.log('Ctrl+Enter: Run Code');
+        console.log('Ctrl+S: Save Code');
+        console.log('Ctrl+O: Load Code');
+        console.log('F5: Run Code');
+    </script>
+</body>
+</html>
